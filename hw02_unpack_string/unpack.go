@@ -35,7 +35,7 @@ func Unpack(s string) (string, error) {
 			ans = append(ans, rune(curRune))
 		}
 	}
-	return string(ans[:]), nil
+	return string(ans), nil
 }
 
 // ConvertToInt reports whether the rune is an int digit and returns it.
