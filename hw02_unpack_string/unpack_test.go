@@ -64,23 +64,3 @@ func TestConvertToInt(t *testing.T) {
 		})
 	}
 }
-
-func TestIsInt(t *testing.T) {
-	tests := []struct {
-		input    string
-		expected string
-	}{
-		{input: "2", expected: "2 true"},
-		{input: "g", expected: "0 false"},
-		{input: "\n", expected: "0 false"},
-	}
-
-	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.input, func(t *testing.T) {
-			r := []MyRune(tc.input)[0]
-			n, ok := r.ConvertToInt()
-			require.Equal(t, tc.expected, fmt.Sprintf("%v %v", n, ok))
-		})
-	}
-}
