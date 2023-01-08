@@ -85,7 +85,6 @@ func (l *list) MoveToFront(i *ListItem) {
 	}
 	l.Remove(i)
 	l.PushFront(i.Value)
-
 }
 
 type list struct {

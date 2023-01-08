@@ -54,11 +54,6 @@ func (l *lruCache) Clear() {
 	l.queue = nil
 }
 
-type cacheItem struct {
-	key   Key
-	value interface{}
-}
-
 func NewCache(capacity int) Cache {
 	return &lruCache{
 		capacity: capacity,
