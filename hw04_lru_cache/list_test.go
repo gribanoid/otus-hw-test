@@ -15,6 +15,47 @@ func TestList(t *testing.T) {
 		require.Nil(t, l.Back())
 	})
 
+	t.Run("removal", func(t *testing.T) {
+		l := NewList()
+		l.PushBack(1)
+		l.PushBack(2)
+		l.PushBack(3)
+
+		l.Remove(l.Front())
+		require.Equal(t, 2, l.Front().Value)
+		require.Equal(t, 3, l.Back().Value)
+		require.Equal(t, 2, l.Len())
+
+		l.Remove(l.Back())
+		require.Equal(t, 2, l.Front().Value)
+		require.Equal(t, 2, l.Back().Value)
+		require.Equal(t, 1, l.Len())
+	})
+
+	t.Run("single element", func(t *testing.T) {
+		l := NewList()
+
+		l.PushBack("single")
+		require.Equal(t, "single", l.Back().Value)
+		require.Equal(t, "single", l.Front().Value)
+		require.Equal(t, 1, l.Len())
+
+		extra1 := l.PushFront("extra_front")
+		extra2 := l.PushBack("extra_back")
+		l.Remove(extra1)
+		l.Remove(extra2)
+		require.Equal(t, "single", l.Back().Value)
+		require.Equal(t, "single", l.Front().Value)
+		require.Equal(t, 1, l.Len())
+
+		extra3 := l.PushBack("extra")
+		l.MoveToFront(extra3)
+		l.Remove(l.Front())
+		require.Equal(t, "single", l.Back().Value)
+		require.Equal(t, "single", l.Front().Value)
+		require.Equal(t, 1, l.Len())
+	})
+
 	t.Run("complex", func(t *testing.T) {
 		l := NewList()
 
