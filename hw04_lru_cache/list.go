@@ -1,9 +1,5 @@
 package hw04lrucache
 
-import (
-	"sync"
-)
-
 type List interface {
 	Len() int
 	Front() *ListItem
@@ -20,27 +16,29 @@ type ListItem struct {
 	Prev  *ListItem
 }
 
+type list struct {
+	len  int
+	head *ListItem
+	tail *ListItem
+}
+
+func NewList() List {
+	return new(list)
+}
+
 func (l *list) Len() int {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
 	return l.len
 }
 
 func (l *list) Front() *ListItem {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
 	return l.head
 }
 
 func (l *list) Back() *ListItem {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
 	return l.tail
 }
 
 func (l *list) PushFront(v interface{}) *ListItem {
-	l.mu.Lock()
-	defer l.mu.Unlock()
 	l.len++
 	front := &ListItem{Value: v}
 	if l.len == 1 {
@@ -53,8 +51,6 @@ func (l *list) PushFront(v interface{}) *ListItem {
 }
 
 func (l *list) PushBack(v interface{}) *ListItem {
-	l.mu.Lock()
-	defer l.mu.Unlock()
 	l.len++
 	back := &ListItem{Value: v}
 	if l.len == 1 {
@@ -67,44 +63,37 @@ func (l *list) PushBack(v interface{}) *ListItem {
 }
 
 func (l *list) Remove(i *ListItem) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
 	l.len--
-	if i.Prev != nil {
-		i.Prev.Next = i.Next
-	}
-	if i.Next != nil {
-		i.Next.Prev = i.Prev
-	}
+	l.destroyElem(i)
 }
 
 func (l *list) MoveToFront(i *ListItem) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if i == l.head {
+	if i != l.head {
+		l.destroyElem(i)
+		front := &ListItem{Value: i.Value}
+		if l.len == 1 {
+			l.head, l.tail = front, front
+		}
+		l.head.Prev, front.Next = front, l.head
+		l.head = front
+	}
+}
+
+func (l *list) destroyElem(i *ListItem) {
+	if l.len == 0 {
+		l.head, l.tail = nil, nil
 		return
 	}
 	if i.Prev != nil {
 		i.Prev.Next = i.Next
+	} else {
+		l.head, i.Next.Prev = i.Next, nil
+		return
 	}
 	if i.Next != nil {
 		i.Next.Prev = i.Prev
+	} else {
+		l.tail, i.Prev.Next = i.Prev, nil
+		return
 	}
-	front := &ListItem{Value: i.Value}
-	if l.len == 1 {
-		l.head, l.tail = front, front
-	}
-	l.head.Prev, front.Next = front, l.head
-	l.head = front
-}
-
-type list struct {
-	len  int
-	head *ListItem
-	tail *ListItem
-	mu   sync.RWMutex
-}
-
-func NewList() List {
-	return new(list)
 }

@@ -18,18 +18,15 @@ type lruCache struct {
 }
 
 func (l *lruCache) Set(key Key, value interface{}) bool {
-	l.mu.RLock()
-	v, ok := l.items[key]
-	l.mu.RUnlock()
-	if ok {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if v, ok := l.items[key]; ok {
 		v.Value = value
 		l.queue.MoveToFront(v)
 		return true
 	}
 	listItem := l.queue.PushFront(value)
-	l.mu.Lock()
 	l.items[key] = listItem
-	l.mu.Unlock()
 	if l.queue.Len() > l.capacity {
 		l.queue.Remove(l.queue.Back())
 	}
@@ -37,10 +34,9 @@ func (l *lruCache) Set(key Key, value interface{}) bool {
 }
 
 func (l *lruCache) Get(key Key) (interface{}, bool) {
-	l.mu.RLock()
-	v, ok := l.items[key]
-	l.mu.RUnlock()
-	if ok {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if v, ok := l.items[key]; ok {
 		l.queue.MoveToFront(v)
 		return l.queue.Front().Value, true
 	}
@@ -50,8 +46,8 @@ func (l *lruCache) Get(key Key) (interface{}, bool) {
 func (l *lruCache) Clear() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	l.items = map[Key]*ListItem{}
-	l.queue = nil
+	l.items = make(map[Key]*ListItem, l.capacity)
+	l.queue = NewList()
 }
 
 func NewCache(capacity int) Cache {
