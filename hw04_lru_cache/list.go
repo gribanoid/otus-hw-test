@@ -79,12 +79,23 @@ func (l *list) Remove(i *ListItem) {
 }
 
 func (l *list) MoveToFront(i *ListItem) {
-	// undefined behavior in goroutines
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	if i == l.head {
 		return
 	}
-	l.Remove(i)
-	l.PushFront(i.Value)
+	if i.Prev != nil {
+		i.Prev.Next = i.Next
+	}
+	if i.Next != nil {
+		i.Next.Prev = i.Prev
+	}
+	front := &ListItem{Value: i.Value}
+	if l.len == 1 {
+		l.head, l.tail = front, front
+	}
+	l.head.Prev, front.Next = front, l.head
+	l.head = front
 }
 
 type list struct {
